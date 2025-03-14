@@ -1,36 +1,101 @@
 
 # **Lazy Learning Summary**
-## **(1) What is the principle of “lazy learning”?**
-**Principle:**
-- **Lazy learning** is a **memory-based approach** where learning happens at query time.
-- Instead of building an explicit model, it **stores training data** and **performs computations during prediction**.
-- **Generalization** is achieved by **recombining stored samples** dynamically at runtime [oai_citation:0‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
+## **(1) What is the principle of “lazy learning”?**  
+
+### **Principle:**  
+1. **Minimal Effort During Training（训练时计算量小）**  
+   - Unlike traditional machine learning methods, lazy learning requires almost no computation during training.  
+   - It directly stores training samples without constructing an explicit model.  
+
+2. **High Computational Cost at Query Time（推理时计算量大）**  
+   - During the prediction phase, lazy learning methods must traverse stored training samples to find the closest match.  
+   - As a result, query time is usually long, and computational cost is high.  
+
+3. **Generalization by Recombination（通过样本重组进行泛化）**  
+   - Since no global model is pre-built, lazy learning methods typically make predictions by combining or interpolating stored training samples.  
+
+[oai_citation:0‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-DHExcBhzm4NRuBxotU4GXZ)
 
 ## **(2) Give some simple approaches. Which variations of k-nearest neighbor do you know?**
-### **Simple approaches:**
-- **Nearest Neighbor (NN):** Assigns the label of the nearest training sample.
-- **k-Nearest Neighbors (k-NN):** Takes the average (or majority vote) of the \(k\) nearest samples.
 
-### **Variations of k-NN:**
-1. **Weighted k-Nearest Neighbors (Wk-NN):**
-   - Weights neighbors based on their distance to the query point.
-   - Example: Using inverse Euclidean distance as weight:
+2. **Locally Adaptive k-NN:** ## **(2) Give some simple approaches. Which variations of k-nearest neighbor do you know?**  
+
+### **Simple Approaches（简单方法）**  
+
+1. **Nearest Neighbor (NN) 最近邻**  
+   - 输入一个查询点 **xq**，找到最近的训练样本 **x**，并直接使用该样本的输出值作为预测值。  
+   - 公式表示如下：  
      \[
-     w_i = \frac{1}{d(x_i, x_q)}
+     \hat{x} = \arg\min_x \| x - x_q \|
      \]
-2. **Locally Adaptive k-NN:** Dynamically selects the value of \(k\) based on local density [oai_citation:1‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
+   - 计算最近邻的过程开销高，对噪声不够鲁棒。  
+
+2. **K-Nearest Neighbors (KNN) K 近邻**  
+   - 查找 **k** 个最接近查询点 **xq** 的训练样本。  
+   - 计算它们的平均值（回归）或进行多数投票（分类）。  
+   - 公式表示如下：
+     \[
+     f(x_q) = \frac{1}{k} \sum_{i=1}^{k} f(\hat{x}_i)
+     \]
+   - 仍然具有较高的计算成本，但比单一最近邻更鲁棒。  
+
+3. **Weighted K-Nearest Neighbors (Weighted KNN) 加权 K 近邻**  
+   - 赋予每个邻居不同的权重，使距离较近的点对最终预测贡献更大。  
+   - 采用欧几里得距离作为度量：  
+     \[
+     d(x_i, x_q) = \| x_i - x_q \|^2
+     \]
+   - 计算权重 **wi**：
+     \[
+     w_i = d(x_i, x_q)^{-1}
+     \]
+   - 预测值：
+     \[
+     f(x_q) = \frac{\sum_{i=1}^{k} w_i f(x_i)}{\sum_{i=1}^{k} w_i}
+     \]
+   - 该方法可以平衡不同邻居的贡献，提高预测精度。  
+
+### **Variations of K-Nearest Neighbor（K 近邻的变体）**  
+
+1. **Standard KNN（标准 KNN）**  
+   - 仅考虑 **k** 个最近的邻居，不对其进行加权。  
+
+2. **Weighted KNN（加权 KNN）**  
+   - 使用基于距离的加权方式，使得更近的点对预测影响更大。  
+
+3. **Inductive Bias in KNN（KNN 的归纳偏差）**  
+   - KNN 依赖于“接近的输入对应相似的输出”的假设，度量距离的方法会影响模型的偏差。  
+
+4. **Curse of Dimensionality in KNN（KNN 受维度灾难影响）**  
+   - 在高维空间中，数据点变得稀疏，最近邻搜索的效果会变差。  
+   - 需要额外的技巧，如降维方法或核回归。  
+
+[oai_citation:5‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-DHExcBhzm4NRuBxotU4GXZ)
 
 ## **(3) How to choose reasonable weightings?**
-- **Common weighting strategies:**
-  - **Inverse Distance Weighting:** \( w_i = \frac{1}{d(x_i, x_q)} \).
-  - **Gaussian Kernel:** Assigns weights using a Gaussian function:
-    \[
-    w_i = \exp \left( -\frac{d(x_i, x_q)^2}{2\sigma^2} \right)
-    \]
-- **Normalization**: Ensures all weights sum to 1:
-  \[
-  f(x_q) = \frac{\sum_{i=1}^{k} w_i f(x_i)}{\sum_{i=1}^{k} w_i}
-  \]
+## **How to choose reasonable weightings?**  
+## **如何选择合理的权重？**  
+
+### **Common Weighting Methods（常见的权重计算方法）**  
+
+1. **Inverse Distance Weighting（逆距离加权）**  
+   - 公式：  
+     \[
+     w_i = d(x_i, x_q)^{-1}
+     \]
+   - 距离越近，权重越高，远离的点影响较小。  
+   - 可避免等权重带来的误差，但在高维数据中计算量较大。  
+
+2. **Gaussian Kernel Weighting（高斯核加权）**  
+   - 公式（Nadaraya-Watson 核回归）：  
+     \[
+     K_{\sigma}(x_i - x_q) = \frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{\|x_i - x_q\|^2}{2\sigma^2}}
+     \]
+   - 赋予较远样本指数衰减的权重，更平滑但对超参数 \( \sigma \) 敏感。  
+
+3. **Adaptive Weighting（自适应加权）**  
+   - 根据局部密度调整权重，如自适应 KNN 动态调整 **k** 或基于局部分布优化权重策略。  
+[oai_citation:5‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-DHExcBhzm4NRuBxotU4GXZ)
 - **Choice of weights depends on:** Noise level, data sparsity, and computational efficiency [oai_citation:2‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
 ## **(4) What is denoted by “curse of dimensionality”? (Give an example!)**
@@ -49,20 +114,62 @@
 ## **(5) Give the formula for the Nadaraya-Watson regressor. Which parameter has to be chosen?**
 - **Nadaraya-Watson estimator (Kernel Regression):**
   \[
-  f(x_q) = \frac{\sum_{i} y_i K_{\sigma}(x_i - x_q)}{\sum_{j} K_{\sigma}(x_j - x_q)}
+  f(x_q) = \sum_{i} y_i \frac {K_{\sigma}(x_i - x_q)}{\sum_{j} K_{\sigma}(x_j - x_q)}
   \]
   where:
   - \( K_{\sigma}(x_i - x_q) \) is a **kernel function**, typically Gaussian:
     \[
-    K_{\sigma}(x) = \frac{1}{\sqrt{2\pi} \sigma} e^{-\frac{x^2}{2\sigma^2}}
+    K_{\sigma}(x) = \frac{1}{\sqrt{2\pi} \sigma} e^{-\frac{||x_{i}-x_{q}||^2}{2\sigma^2}}
     \]
   - **Parameter to choose**: The **kernel bandwidth \(\sigma\)**, which controls the smoothness of the predictions [oai_citation:4‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
 ## **(6) What is the inductive bias?**
-- **Inductive bias in lazy learning**:  
-  - Assumes **“close” instances should have similar outputs**.
-  - Imposed **through the choice of distance metric** (e.g., Euclidean, Mahalanobis).
-  - k-NN assumes **locally linear decision boundaries** [oai_citation:5‡lecture_13_on_the_learning_09_07_2024.pdf](file-service://file-DViwf5dAJGMuJZBejCSkEt).
+
+### **Definition（定义）**  
+- **Inductive bias** refers to the assumptions a learning algorithm makes to generalize from limited data.  
+- **归纳偏差** 是指机器学习算法在有限数据上进行泛化时所依赖的假设。  
+
+### **Inductive Bias in KNN（KNN 的归纳偏差）**  
+1. **Smoothness Assumption（平滑性假设）**  
+   - **Assumption:** "Close" inputs lead to "similar" outputs.  
+   - **假设：** “相近的输入会产生相似的输出”。  
+
+2. **Role of Distance Metric（距离度量的作用）**  
+   - The definition of "closeness" depends on the **chosen distance metric**.  
+   - 不同的**距离度量方法**决定了什么是“相近”。  
+
+3. **Effect of Inductive Bias（归纳偏差的影响）**  
+   - **Strong bias** (e.g., Euclidean distance) → Better generalization but may fail in non-Euclidean spaces.  
+   - **弱偏差**（如自适应度量）→ 灵活但可能更容易过拟合。  
+
+### **Key Takeaway（总结）**  
+### **Definition（定义）**  
+- **Inductive bias** refers to the assumptions a learning algorithm makes to generalize from limited data.  
+- **归纳偏差** 是指机器学习算法在有限数据上进行泛化时所依赖的假设。  
+
+### **Inductive Bias in Vector Quantization（向量量化中的归纳偏差）**  
+
+1. **Prototype-based Learning（基于原型的学习）**  
+   - Data points **x_n** are assigned to the **nearest prototype w_k** based on a chosen distance metric.  
+   - 数据点 **x_n** 根据选定的距离度量方式被分配到**最近的原型 w_k**。  
+   - **Inductive Bias:** The model assumes that proximity in the chosen metric reflects similarity.  
+
+2. **Role of Distance Metric（距离度量的作用）**  
+   - **Common metric:** Euclidean Distance  
+   - 选择不同的距离度量方式（如欧几里得距离、马哈拉诺比斯距离）会影响模型的泛化能力。  
+   - 归纳偏差由此引入，决定了如何定义“相似性”。  
+
+3. **Quantization Error Minimization（量化误差最小化）**  
+   - The objective function minimizes the distance between data points and their assigned prototypes:  
+     \[
+     J_{VQ} = \frac{1}{N} \sum_{n=1}^{N} d(x_n, w_c(x_n))
+     \]
+   - The assumption here is that minimizing this error leads to an optimal clustering structure.  
+   - 归纳偏差影响模型如何优化原型位置以减少量化误差。  
+
+- 归纳偏差**不可避免**，但可以通过**合适的距离度量选择**来优化。  
+
+[oai_citation:5‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-DHExcBhzm4NRuBxotU4GXZ)
 ---
 
 # **Prototypes, k-Means, GMM, EM Summary**
@@ -78,17 +185,43 @@
 ## **(2) What criterion is optimized?**
 - **Objective function:** Sum of squared Euclidean distances from each point to its assigned cluster centroid:
   \[
-  J = \sum_{i=1}^{N} \sum_{k=1}^{K} r_{ik} || x_i - \mu_k ||^2
+  J = \sum_{i=1}^{N} \sum_{k=1}^{K} r_{ik} \| x_i - w_k \|^2
   \]
   where:
   - \( r_{ik} = 1 \) if \( x_i \) belongs to cluster \( k \), otherwise 0.
   - \( \mu_k \) is the cluster center [oai_citation:1‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
 ## **(3) What is the E-step, what is the M-step?**
-- **Expectation Step (E-Step)**:
-  - Assign data points to the cluster with the highest probability or minimum distance.
-- **Maximization Step (M-Step)**:
-  - Update cluster centroids (in k-means) or estimate new parameters (in GMM) [oai_citation:2‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
+## E-step: Assign Data Points to Clusters for Fixed Prototypes
+
+Each data point \( x_n \) is assigned to the closest cluster center \( w_k \):
+
+$$
+r_{nk} =
+\begin{cases} 
+1, & \text{if } k = \arg\min_j \| x_n - w_j \|^2 \\
+0, & \text{otherwise}
+\end{cases}
+$$
+
+#### M-step: Update the Cluster Center \( w_k \) for a Fixed Assignment
+
+The new cluster center is computed as the mean of all points assigned to the cluster:
+
+$$
+w_k = \frac{\sum_{n=1}^{N} r_{nk} x_n}{\sum_{n=1}^{N} r_{nk}}
+$$
+
+#### K-means Objective Function
+
+The goal is to minimize the following cost function:
+
+$$
+J = \sum_{i=1}^{N} \sum_{k=1}^{K} r_{ik} \| x_i - w_k \|^2
+$$
+
+- The new prototype \( w_k \) is the mean (center) of the assigned points.
+- **K-means converges!**[oai_citation:2‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
 ## **(4) What is LBG?**
 - **Linde-Buzo-Gray (LBG) Algorithm**:
