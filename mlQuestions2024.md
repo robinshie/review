@@ -203,83 +203,456 @@ $$
 - They can all be seen as special cases of the unified model. For instance, linear regression corresponds to using an identity basis function; RBF networks use constant functions weighted by Gaussian functions; and LWR/weighted regression extend this idea by incorporating local linear models with appropriate weighting.
 
 
+---  
+--------------------------
+
+# **Classification Summary**
+## **(1) What is the aim of classification?**
+**Goal:** The aim of classification is to assign data points to different categories so that future predictions can be made accurately. The core task is to find a **decision boundary** that maximizes classification accuracy [oai_citation:0‡lecture_07_classification_27_05_2024v2.pdf](file-service://file-DJcfD6QznTwXaTVfXiMwjR).
+
+## **(2) How to model labels for multi-class problems?**
+**Multi-class label modeling:**  
+- **One-hot encoding:** Assigns each class a unique vector, e.g., for a three-class problem: A=(1,0,0), B=(0,1,0), C=(0,0,1).  
+- **Probability distribution:** Uses the softmax function to ensure that the sum of class probabilities is 1 [oai_citation:1‡lecture_07_classification_27_05_2024v2.pdf](file-service://file-DJcfD6QznTwXaTVfXiMwjR).
+
+## **(3) What is “linear separability”?**
+**Linear separability:** A dataset is **linearly separable** if a **linear hyperplane** (e.g., a line or a plane) can completely separate different class points. For example, perceptron and logistic regression work well only on linearly separable data [oai_citation:2‡lecture_07_classification_27_05_2024v2.pdf](file-service://file-DJcfD6QznTwXaTVfXiMwjR).
+
+## **(4) Sketch how to proceed for the Fisher discriminant.**
+**Fisher Discriminant Analysis (FDA) Steps:**
+# **Fisher’s Linear Discriminant (FLD) Steps**
+1. **Compute the mean vectors** for each class:  
+   \[
+   \mathbf{m}_1 = \frac{1}{N_1} \sum_{n \in C_1} \mathbf{x}_n, \quad
+   \mathbf{m}_2 = \frac{1}{N_2} \sum_{n \in C_2} \mathbf{x}_n
+   \]
+
+2. **Project the data from 2D to 1D** using a linear model:  
+   \[
+   y(\mathbf{x}) = \mathbf{w}^T \mathbf{x}
+   \]
+
+3. **Ensure projected points** lie on a straight line parallel to \( \mathbf{w} \).
+
+4. **Perform projection** along the line orthogonal to \( \mathbf{w} \).[oai_citation:3‡lecture_07_classification_27_05_2024v2.pdf](file-service://file-DJcfD6QznTwXaTVfXiMwjR).
+
+## **(5) Which criterion is optimized (write it down!)? Why is this reasonable?**
+**Optimization Criterion:**
+(*"maximize inter-class variance"*)  
+\[
+\max_{w} | m'_1 - m'_2 |
+\]
+
+\[
+\Leftrightarrow \max_{w} | w^T m_1 - w^T m_2 |
+\]
+
+### **Hence:**  
+\[
+w \propto (m_2 - m_1)
+\]
+(*"w points in the same direction as \( (m_2 - m_1) \)"*)  
+- **Direction and length of \( w \) are not irrelevant.**  
+- **Projections may overlap heavily.**  
+
+## **(6) What is the result?**
+**Result:** Fisher Discriminant Analysis finds the **optimal projection direction** that maximizes the separation between different classes in the projected space [oai_citation:5‡lecture_07_classification_27_05_2024v2.pdf](file-service://file-DJcfD6QznTwXaTVfXiMwjR).
+
+## **(7) Write down the Bayesian Approach for 2 classes.**
+**Bayesian Classifier (Binary Classification):**
+\[
+P(C_k | x) = \frac{P(x | C_k) P(C_k)}{P(x)}
+\]
+where:
+- \( P(C_k | x) \) is the **posterior probability** of class \( C_k \) given \( x \).
+- \( P(x | C_k) \) is the **class-conditional probability** (likelihood).
+- \( P(C_k) \) is the **prior probability** of class \( C_k \).
+- \( P(x) \) is a **normalization factor** 
+- \( P(C_k | x) \) = 1 / (1 + $e^{-a})$
+[oai_citation:6‡lecture_04_seq_Bayes_lin_models_30_04_2024v1.pdf](file-service://file-7gSFXdF3sqEAGwK4DdVaTE).
+
+## **(8) Why is this named “generalized linear model”, under which condition?**
+**Generalized Linear Model (GLM):**
+- A linear model assumes the target variable is a linear combination of inputs.
+- **GLM extends this** by applying **non-linear transformations** (e.g., sigmoid, softmax) for classification problems.
+- **Condition:** When using **logistic regression** or **softmax regression**, it is called a GLM because it maps a **linear combination** of inputs into a probability range (0,1) [oai_citation:7‡lecture_04_seq_Bayes_lin_models_30_04_2024v1.pdf](file-service://file-7gSFXdF3sqEAGwK4DdVaTE).
+
+## **(9) If the classes are modeled with a Gaussian function, what is the result?**
+**Gaussian Model-Based Classification:**
+- If each class follows a **Gaussian probability density function (PDF)**:
+\[
+p(C_1 | \mathbf{x}) = \sigma(\mathbf{w}^T \mathbf{x} + w_0)
+\]
+1. **Weight Vector \( \mathbf{w} \):**
+   \[
+   \mathbf{w} = \Sigma^{-1} (\mu_1 - \mu_2)
+   \]
+
+2. **Bias Term \( w_0 \):**
+   \[
+   w_0 = -\frac{1}{2} \mu_1^T \Sigma^{-1} \mu_1 + \frac{1}{2} \mu_2^T \Sigma^{-1} \mu_2 + \ln \frac{p(C_1)}{p(C_2)}
+   \]
+- The **decision boundary** becomes a **Quadratic Discriminant Analysis (QDA)** or **Linear Discriminant Analysis (LDA)** depending on whether the covariance matrices \( \Sigma_k \) are assumed equal [oai_citation:8‡lecture_11_GMM_GMR_25_06_2024.pdf](file-service://file-Fyhrm8XccUhtWpPBepmkdy).
+
+## **(10) Describe max-likelihood for labels. Which trick is used for the computation?**
+**Maximum Likelihood Estimation (MLE) for Labels:**
+- Maximizes the **log-likelihood function**:
+  \[
+  L(\theta) = \sum_{i=1}^{N} \log P(y_i | x_i, \theta)
+  \]
+- **Computational Tricks:**
+  - **Log Transformation:** Converts product operations into summation to avoid numerical underflow.
+  - **Gradient Descent:** Optimizes parameters using iterative methods like SGD or Newton's method.
+  - **Softmax Activation:** Ensures valid probability outputs in multi-class classification [oai_citation:9‡lecture_12_Kernels_01_07_2024.pdf](file-service://file-QzTzXaBMP6qhZjHtEcNz8D).
+
+## **(11) How to directly model the posterior?**
+**Direct Posterior Modeling:**
+- Use **logistic regression** or **softmax regression** to directly estimate the posterior probability:
+  \[
+  P(C_k | x) = \frac{\exp(w_k^T x)}{\sum_{j} \exp(w_j^T x)}
+  \]
+- This is a **discriminative model**, which differs from **generative models** like Naïve Bayes [oai_citation:10‡lecture_12_Kernels_01_07_2024.pdf](file-service://file-QzTzXaBMP6qhZjHtEcNz8D).
+
+## **(12) What is the cross-entropy, and how to arrive at it?**
+**Cross-Entropy Formula:**
+
+p6 last
+[oai_citation:11‡lecture_12_Kernels_01_07_2024.pdf](file-service://file-QzTzXaBMP6qhZjHtEcNz8D).
+---
+---------------
+---------------
+# **Concept Learning Summary**
+## **(1) What is the goal of concept learning? Formalize the learning scenario.**
+**Goal:**  
+Concept learning aims to **extract a Boolean function** from instances and their labeled training data. It is equivalent to **identifying a particular subset** from training data [oai_citation:0‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+**Formalization:**  
+- Let **\(X\)** be the **set of instances**.
+- A **concept** is a subset **\(C \subset X\)**.
+- A **concept function** maps each instance to a label **\( c: X \to \{0,1\} \)** (indicator function).
+- The **concept space** is the set of all possible functions **\( {c : X \to \{0,1\}} \)** [oai_citation:1‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(2) What is a concept? (Give different equivalent descriptions.)**
+A **concept** can be defined as:
+- A **Boolean classification function** over instances.
+- A **subset** of the instance space **\(X\)**.
+- A **mapping function** that assigns labels **\( \{0,1\} \)** to instances.
+- A **hypothesis** describing which instances belong to a specific class [oai_citation:2‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(3) How many concepts exist for a given space of instances?**
+The number of possible concepts in a given space of instances **\(X\)** is:
+\[
+\text{\# of concepts} = 2^{|X|}
+\]
+where **\(|X|\)** is the number of instances [oai_citation:3‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(4) Why is the application of hypotheses useful? Why is direct search in the space of concepts a bad idea?**
+- **Hypotheses enable generalization** by restricting search to a smaller space.
+- **Direct search is computationally infeasible**, as the number of concepts grows exponentially **(\(2^{|X|}\))**.
+- **Inductive bias** helps limit the search space and improves learning efficiency [oai_citation:4‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(5) Explain the “more general” relation and give examples.**
+A hypothesis **\(h_i\)** is **more general** than **\(h_j\)** if:
+\[
+\forall x \in X : (h_j(x) = 1 \Rightarrow h_i(x) = 1)
+\]
+This means **\(h_i\)** includes all instances of **\(h_j\)** and possibly more [oai_citation:5‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+**Example:**  
+- \( h_1 = (\text{All red objects}) \) is more general than \( h_2 = (\text{All red circles}) \).
+
+## **(6) Special case for a hypothesis space for learning based on attributes. (Give a precise mathematical definition.)**
+For attribute-based learning, hypotheses are **conjunctions of attribute constraints**:
+\[
+h = \langle a_1, a_2, ..., a_n \rangle
+\]
+where:
+- \(a_i\) can be **specific values**, **wildcards (\(?\))**, or **empty (\(\emptyset\))**.
+- Example hypothesis: \( \langle \text{red, ?} \rangle \) means "all red objects" [oai_citation:6‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(7) Give an example for what cannot be represented with this hypothesis space.**
+- **Non-conjunctive rules**, such as **disjunctions**:  
+  Example: "Red **or** Circular" cannot be represented as it is not a strict conjunction.
+- **Continuous decision boundaries**, like a **linear separator in feature space** [oai_citation:7‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(8) How does search through generalization work? State problems.**
+- **Start with the most specific hypothesis** (e.g., \( \emptyset \)).
+- **Gradually generalize** by replacing attribute constraints with wildcards (\(?\)).
+- **Problem:** Risk of overgeneralization (leading to false positives) [oai_citation:8‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(9) What is a consistent hypothesis? What is the version space?**
+- A **consistent hypothesis** correctly classifies all training examples.
+- The **version space** is the set of all consistent hypotheses [oai_citation:9‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(10) How to generalize with the version space?**
+- Maintain **\(G\)-set (most general hypotheses)**.
+- Maintain **\(S\)-set (most specific hypotheses)**.
+- Any hypothesis lying between **\(S\) and \(G\)** is a valid generalization [oai_citation:10‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(11) What is the inductive bias?**
+- **Inductive bias** is the **set of assumptions** a learning algorithm makes to generalize beyond training data.
+- Example: Decision trees favor **simpler trees** (Occam’s razor) [oai_citation:11‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(12) What about bias-free learning? If it exists, is it useful?**
+- **Bias-free learning** would require searching the entire concept space.
+- **Not useful**, as it leads to an **exponential search problem** (no generalization) [oai_citation:12‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(13) Describe the procedure for decision trees.**
+1. Select **best attribute** using **Information Gain**.
+2. Partition data **recursively**.
+3. Stop when **all instances belong to the same class** or **no attributes remain** [oai_citation:13‡lecture_09_Decision-Trees+Bayesian-Concept-11_06_2024v1.pdf](file-service://file-T1j5eHdREayqkvNyrxJSRy).
+
+## **(14) Are there any issues? How to solve them?**
+**Issues:**
+- **Overfitting** (tree too complex).
+- **Irrelevant attributes** may mislead the tree.
+- **Handling missing values** is difficult.
+
+**Solutions:**
+- **Pruning** (cut back the tree).
+- **Feature selection**.
+- **Handling missing values with probabilities** [oai_citation:14‡lecture_09_Decision-Trees+Bayesian-Concept-11_06_2024v1.pdf](file-service://file-T1j5eHdREayqkvNyrxJSRy).
+
+## **(15) Define information gain. How is it computed? (Write down in math terms.)**
+\[
+IG(A) = H(D) - \sum_{v \in A} \frac{|D_v|}{|D|} H(D_v)
+\]
+where:
+- \(H(D)\) is **entropy before the split**.
+- \(H(D_v)\) is **entropy after splitting on attribute \(A\)** [oai_citation:15‡lecture_09_Decision-Trees+Bayesian-Concept-11_06_2024v1.pdf](file-service://file-T1j5eHdREayqkvNyrxJSRy).
+
+## **(16) What is the hypothesis space of ID3?**
+- **Set of all possible decision trees**.
+- **Includes all finite discrete classifications**.
+- **No bias from a-priori restrictions** [oai_citation:16‡lecture_09_Decision-Trees+Bayesian-Concept-11_06_2024v1.pdf](file-service://file-T1j5eHdREayqkvNyrxJSRy).
+
+## **(17) How is the search organized for ID3, and what is the inductive bias?**
+- **Search:** Uses **greedy top-down search** with **Information Gain**.
+- **Inductive Bias:**
+  - Prefers **shorter trees**.
+  - Assumes **attributes are conditionally independent** given the class [oai_citation:17‡lecture_09_Decision-Trees+Bayesian-Concept-11_06_2024v1.pdf](file-service://file-T1j5eHdREayqkvNyrxJSRy).
+
+## **(18) What different types of inductive biases exist?**
+1. **Restriction Bias:** Limits hypothesis space (e.g., linear models).
+2. **Preference Bias:** Prefers certain hypotheses (e.g., Occam’s razor).
+3. **Algorithmic Bias:** Comes from how hypotheses are updated [oai_citation:18‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC).
+
+## **(19) Compare decision trees and learning by generalization/specialization, specifically regarding their biases.**
+| **Aspect**          | **Decision Trees (ID3)**       | **Generalization/Specialization** |
+|--------------------|--------------------------------|--------------------------------|
+| **Search**         | Greedy search using entropy    | Incremental update |
+| **Inductive Bias** | Prefers shorter trees (Occam)  | Structure of hypothesis space |
+| **Efficiency**     | Fast for categorical data      | Slower, depends on constraints |
+| **Flexibility**    | Limited to discrete attributes | Works with structured constraints [oai_citation:19‡lecture_08_concept-learning_04_06_2024v1.pdf](file-service://file-Mm1G4sRNyePx2trxiP1wcC). |
+
+-------------------
+-------------------
+# **Lazy Learning Summary**
+## **(1) What is the principle of “lazy learning”?**
+**Principle:**
+- **Lazy learning** is a **memory-based approach** where learning happens at query time.
+- Instead of building an explicit model, it **stores training data** and **performs computations during prediction**.
+- **Generalization** is achieved by **recombining stored samples** dynamically at runtime [oai_citation:0‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
+
+## **(2) Give some simple approaches. Which variations of k-nearest neighbor do you know?**
+### **Simple approaches:**
+- **Nearest Neighbor (NN):** Assigns the label of the nearest training sample.
+- **k-Nearest Neighbors (k-NN):** Takes the average (or majority vote) of the \(k\) nearest samples.
+
+### **Variations of k-NN:**
+1. **Weighted k-Nearest Neighbors (Wk-NN):**
+   - Weights neighbors based on their distance to the query point.
+   - Example: Using inverse Euclidean distance as weight:
+     \[
+     w_i = \frac{1}{d(x_i, x_q)}
+     \]
+2. **Locally Adaptive k-NN:** Dynamically selects the value of \(k\) based on local density [oai_citation:1‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
+
+## **(3) How to choose reasonable weightings?**
+- **Common weighting strategies:**
+  - **Inverse Distance Weighting:** \( w_i = \frac{1}{d(x_i, x_q)} \).
+  - **Gaussian Kernel:** Assigns weights using a Gaussian function:
+    \[
+    w_i = \exp \left( -\frac{d(x_i, x_q)^2}{2\sigma^2} \right)
+    \]
+- **Normalization**: Ensures all weights sum to 1:
+  \[
+  f(x_q) = \frac{\sum_{i=1}^{k} w_i f(x_i)}{\sum_{i=1}^{k} w_i}
+  \]
+- **Choice of weights depends on:** Noise level, data sparsity, and computational efficiency [oai_citation:2‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
+
+## **(4) What is denoted by “curse of dimensionality”? (Give an example!)**
+- **Curse of dimensionality:** In high-dimensional spaces:
+  - Data points become **sparsely distributed**.
+  - **Distances lose meaning**, making nearest neighbor approaches ineffective.
+
+### **Example:**
+- Consider a **unit sphere** with radius **\(r=1\)** in **\(D\)-dimensional space**.
+- The volume of an inner sphere with radius \( (1-\epsilon) \) is:
+  \[
+  V_D(1 - \epsilon) = K_D (1 - \epsilon)^D
+  \]
+- As **\(D \to \infty\)**, the relative volume in the outer shell approaches **1**, meaning nearly all the volume is in the shell, making it hard to find meaningful neighbors [oai_citation:3‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
+
+## **(5) Give the formula for the Nadaraya-Watson regressor. Which parameter has to be chosen?**
+- **Nadaraya-Watson estimator (Kernel Regression):**
+  \[
+  f(x_q) = \frac{\sum_{i} y_i K_{\sigma}(x_i - x_q)}{\sum_{j} K_{\sigma}(x_j - x_q)}
+  \]
+  where:
+  - \( K_{\sigma}(x_i - x_q) \) is a **kernel function**, typically Gaussian:
+    \[
+    K_{\sigma}(x) = \frac{1}{\sqrt{2\pi} \sigma} e^{-\frac{x^2}{2\sigma^2}}
+    \]
+  - **Parameter to choose**: The **kernel bandwidth \(\sigma\)**, which controls the smoothness of the predictions [oai_citation:4‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
+
+## **(6) What is the inductive bias?**
+- **Inductive bias in lazy learning**:  
+  - Assumes **“close” instances should have similar outputs**.
+  - Imposed **through the choice of distance metric** (e.g., Euclidean, Mahalanobis).
+  - k-NN assumes **locally linear decision boundaries** [oai_citation:5‡lecture_13_on_the_learning_09_07_2024.pdf](file-service://file-DViwf5dAJGMuJZBejCSkEt).
 ---
 
-# Classification  
+# **Prototypes, k-Means, GMM, EM Summary**
 
-## (1) What is the aim of classification?  
-## (2) How to model labels for multi-class problems?  
-## (3) What is “linear separability”?  
-## (4) Sketch how to proceed for the Fisher discriminant.  
-## (5) Which criterion is optimized (write it down!)? Why is this reasonable?  
-## (6) What is the result?  
-## (7) Write down the Bayesian Approach for 2 classes.  
-## (8) Why is this named “generalized linear model”, under which condition?  
-## (9) If the classes are modeled with a Gaussian function, what is the result?  
-## (10) Describe max-likelihood for labels. Which trick is used for the computation?  
-## (11) How to directly model the posterior?  
-## (12) What is the cross-entropy, and how to arrive at it?  
+## **(1) Sketch the k-means approach for two clusters.**
+1. **Initialization**: Select **K = 2** cluster centroids randomly.
+2. **Assignment Step (E-Step)**:
+   - Assign each data point **\( x_i \)** to the nearest cluster centroid **\( \mu_k \)** based on Euclidean distance.
+3. **Update Step (M-Step)**:
+   - Recalculate cluster centroids as the **mean** of all assigned points.
+4. **Repeat** steps 2 and 3 until convergence (centroids stop changing) [oai_citation:0‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
----
+## **(2) What criterion is optimized?**
+- **Objective function:** Sum of squared Euclidean distances from each point to its assigned cluster centroid:
+  \[
+  J = \sum_{i=1}^{N} \sum_{k=1}^{K} r_{ik} || x_i - \mu_k ||^2
+  \]
+  where:
+  - \( r_{ik} = 1 \) if \( x_i \) belongs to cluster \( k \), otherwise 0.
+  - \( \mu_k \) is the cluster center [oai_citation:1‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
-# Concept Learning  
+## **(3) What is the E-step, what is the M-step?**
+- **Expectation Step (E-Step)**:
+  - Assign data points to the cluster with the highest probability or minimum distance.
+- **Maximization Step (M-Step)**:
+  - Update cluster centroids (in k-means) or estimate new parameters (in GMM) [oai_citation:2‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
-## (1) What is the goal of concept learning? Formalize the learning scenario.  
-## (2) What is a concept? *(Give different equivalent descriptions).*  
-## (3) How many concepts exist for a given space of instances?  
-## (4) Why is the application of hypotheses useful? Why is direct search in the space of concepts a bad idea?  
-## (5) Explain the “more general” relation and give examples.  
-## (6) Special case for a hypothesis space for learning based on attributes. *(Give precise definition in mathematical terms.)*  
-## (7) Give an example for what cannot be represented with this hypothesis space.  
-## (8) How does search through generalization work? State problems.  
-## (9) What is a consistent hypothesis? What is the version space?  
-## (10) How to generalize with the version space?  
-## (11) What is the inductive bias?  
-## (12) What about bias-free learning? If it exists, is it useful?  
-## (13) Describe the procedure for decision trees.  
-## (14) Are there any issues? How to solve them?  
-## (15) Define information gain. How is it computed? *(Write down in math terms.)*  
-## (16) What is the hypothesis space of ID3?  
-## (17) How is the search organized for ID3, and what is the inductive bias?  
-## (18) What different types of inductive biases exist?  
-## (19) Compare decision trees and learning by generalization/specialization, specifically regarding their biases.  
+## **(4) What is LBG?**
+- **Linde-Buzo-Gray (LBG) Algorithm**:
+  - A **vector quantization** method used for clustering.
+  - Works by **splitting centroids** iteratively and refining them using **k-means**.
+  - Used in **speech processing** and **codebook generation** [oai_citation:3‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
----
+## **(5) Write down the general Gaussian mixture model.**
+\[
+p(x) = \sum_{k=1}^{K} \pi_k \mathcal{N}(x | \mu_k, \Sigma_k)
+\]
+where:
+- \( \pi_k \) is the **mixing coefficient** (\(\sum_k \pi_k = 1\)).
+- \( \mathcal{N}(x | \mu_k, \Sigma_k) \) is a **multivariate Gaussian distribution** [oai_citation:4‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
-# Lazy Learning  
+## **(6) Which parameters exist, and how to interpret them?**
+- **\( \pi_k \) (Mixing Coefficients):** Probability of each component (weight of each Gaussian).
+- **\( \mu_k \) (Mean Vectors):** Center of each Gaussian cluster.
+- **\( \Sigma_k \) (Covariance Matrices):** Spread/shape of the clusters.
+- **\( K \) (Number of Gaussians):** Defines the number of mixture components [oai_citation:5‡lecture_11_GMM_GMR_25_06_2024.pdf](file-service://file-Fyhrm8XccUhtWpPBepmkdy).
 
-## (1) What is the principle of “lazy learning”?  
-## (2) Give some simple approaches. Which variations of k-nearest neighbor do you know?  
-## (3) How to choose reasonable weightings?  
-## (4) What is denoted by “curse of dimensionality”? *(Give an example!)*  
-## (5) Give the formula for the Nadaraya-Watson regressor. Which parameter has to be chosen?  
-## (6) What is the inductive bias?  
+## **(7) What are the “responsibilities” and how to optimize them? What is the result?**
+- **Responsibilities \( \gamma_{ik} \)**:  
+  - Probability that data point \( x_i \) belongs to Gaussian \( k \).
+  - Given by Bayes' rule:
+    \[
+    \gamma_{ik} = \frac{\pi_k \mathcal{N}(x_i | \mu_k, \Sigma_k)}{\sum_{j=1}^{K} \pi_j \mathcal{N}(x_i | \mu_j, \Sigma_j)}
+    \]
 
----
+- **Optimization via Expectation-Maximization (EM) Algorithm**:
+  1. **E-Step:** Compute responsibilities \( \gamma_{ik} \).
+  2. **M-Step:** Update \( \pi_k, \mu_k, \Sigma_k \) using weighted means.
+  3. **Repeat** until convergence [oai_citation:6‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
-# Prototypes, k-Means, GMM, EM  
-
-## (1) Sketch the k-means approach for two clusters.  
-## (2) What criterion is optimized?  
-## (3) What is the E-step, what is the M-step?  
-## (4) What is LBG?  
-## (5) Write down the general Gaussian mixture model.  
-## (6) Which parameters exist, and how to interpret them?  
-## (7) What are the “responsibilities” and how to optimize them? What is the result?  
+- **Result:** A **soft clustering** model where each data point has a probability of belonging to multiple clusters, unlike k-means which provides **hard assignments** [oai_citation:7‡lecture_10_unsupervised_18_06_2024v1.pdf](file-service://file-949NPaqCH1RQryBXCfTwBZ).
 
 ---
 
-# Theoretical Foundations  
+# **Theoretical Foundations Summary**
 
-## (1) Describe the following pairs of notions:  
-- supervised vs. unsupervised learning  
-- batch vs. incremental  
-- offline vs. online  
-- error/cost vs. likelihood  
-- empirical vs. true error  
+## **(1) Describe the following pairs of notions:**
+### **Supervised vs. Unsupervised Learning**
+- **Supervised Learning**: The model is trained on labeled data \( (X, Y) \), where each input has a known output (e.g., classification, regression).
+- **Unsupervised Learning**: The model finds patterns in **unlabeled data** \( X \) (e.g., clustering, PCA) [oai_citation:0‡lecture_02_regression_and_notions_22_04_2024v1.pdf](file-service://file-XPHndy64cK8xsipCi7KtYD).
 
-## (2) Give an example of a cost function.  
-## (3) What is generalization ability?  
-## (4) How do model complexity and overfitting relate?  
-## (5) What is cross-validation? How to perform it?  
-## (6) How can noise help/disturb learning?  
+### **Batch vs. Incremental Learning**
+- **Batch Learning**: The model is trained using the entire dataset at once.
+- **Incremental Learning**: The model updates **sequentially** as new data arrives (e.g., online learning) [oai_citation:1‡lecture_13_on_the_learning_09_07_2024.pdf](file-service://file-DViwf5dAJGMuJZBejCSkEt).
+
+### **Offline vs. Online Learning**
+- **Offline Learning**: Training occurs **before deployment** using a fixed dataset.
+- **Online Learning**: The model **updates continuously** with new incoming data (e.g., stock prediction) [oai_citation:2‡lecture_13_on_the_learning_09_07_2024.pdf](file-service://file-DViwf5dAJGMuJZBejCSkEt).
+
+### **Error/Cost vs. Likelihood**
+- **Error/Cost Function**: Measures **how far** predictions are from actual values.
+  \[
+  E(w) = \frac{1}{2} \sum_{n=1}^{N} (y(x_n, w) - t_n)^2
+  \]
+- **Likelihood**: The probability of observing data given model parameters.
+  \[
+  P(D | w) = \prod_{\alpha=1}^{M} P(z_{\alpha} | w) = e^{-E_D(w)}
+  \]
+  The two are **inversely related** [oai_citation:3‡lecture_13_on_the_learning_09_07_2024.pdf](file-service://file-DViwf5dAJGMuJZBejCSkEt).
+
+### **Empirical vs. True Error**
+- **Empirical Error**: The error measured on the **training set**:
+  \[
+  E_{\text{emp}}(w) = \frac{1}{M} \sum_{\alpha=1}^{M} E(z_{\alpha}, w)
+  \]
+- **True Error**: The expected error over **all possible data points**:
+  \[
+  E_{\infty}(w) = \int E(z, w) P(z) dz
+  \]
+  Minimizing empirical error **does not guarantee** minimal true error (overfitting risk) [oai_citation:4‡lecture_13_on_the_learning_09_07_2024.pdf](file-service://file-DViwf5dAJGMuJZBejCSkEt).
+
+## **(2) Give an example of a cost function.**
+**Quadratic Loss (Mean Squared Error - MSE)**:
+\[
+E(w) = \frac{1}{2N} \sum_{n=1}^{N} (y(x_n, w) - t_n)^2
+\]
+Used in regression problems to **minimize squared differences** [oai_citation:5‡lecture_02_regression_and_notions_22_04_2024v1.pdf](file-service://file-XPHndy64cK8xsipCi7KtYD).
+
+## **(3) What is generalization ability?**
+- The ability of a model to **perform well on unseen data**.
+- A well-generalized model **minimizes the gap** between training error and test error.
+- **Key factors** affecting generalization:
+  - Amount of training data.
+  - Complexity of the model.
+  - Proper use of regularization [oai_citation:6‡lecture_02_regression_and_notions_22_04_2024v1.pdf](file-service://file-XPHndy64cK8xsipCi7KtYD).
+
+## **(4) How do model complexity and overfitting relate?**
+- **Low complexity**: Underfits data, poor accuracy.
+- **High complexity**: Overfits training data, poor generalization.
+- **Trade-off**:
+  - Simple models (e.g., linear regression) generalize well but may underfit.
+  - Complex models (e.g., deep networks) may overfit without regularization.
+  - Solution: Use **cross-validation and regularization** [oai_citation:7‡lecture_02_regression_and_notions_22_04_2024v1.pdf](file-service://file-XPHndy64cK8xsipCi7KtYD).
+
+## **(5) What is cross-validation? How to perform it?**
+- **Cross-validation** estimates model performance by **dividing data into training and validation sets**.
+- **Steps for k-fold cross-validation**:
+  1. Split data into **\( k \) equal folds**.
+  2. Train the model on **\( k-1 \) folds**, test on the remaining fold.
+  3. Repeat for all \( k \) folds.
+  4. Compute the **average validation error**.
+- Common types:
+  - **k-fold Cross-Validation**: \( k = 5 \) or \( 10 \) is common.
+  - **Leave-One-Out (LOO)**: Each data point is used as a test set **once** [oai_citation:8‡lecture_13_on_the_learning_09_07_2024.pdf](file-service://file-DViwf5dAJGMuJZBejCSkEt).
+
+## **(6) How can noise help/disturb learning?**
+- **Disturbance (Negative Impact)**:
+  - **High noise** increases variance → Overfitting.
+  - **Noisy labels** mislead model learning.
+  - Causes **higher generalization error**.
+
+- **Helpful (Positive Impact)**:
+  - **Adding noise** can help prevent overfitting (e.g., data augmentation).
+  - **Dropout** in neural networks acts as **regularization**.
+  - **Stochastic Gradient Descent (SGD)** benefits from **noise-induced escape from local minima** [oai_citation:9‡lecture_05_error_minimization_06_05_2024v1.pdf](file-service://file-3qtCmAREhyo7KL8j3WNqVo).
